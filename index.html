@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<link rel="manifest" href="manifest.json">
+<title>IBM-24 Timetable</title>
+<style>
+:root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#111827;background:#f3f4f6}
+*{box-sizing:border-box}body{margin:0}main{max-width:760px;margin:auto;padding:18px 14px 30px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}
+h1{font-size:24px;margin:0;letter-spacing:-.5px}.sub{font-size:13px;color:#6b7280;margin-top:4px}
+.badge{background:#111827;color:#fff;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:700}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px}
+button{border:0;border-radius:12px;padding:12px;font-size:15px;font-weight:700;background:#fff;color:#111827;box-shadow:0 1px 3px #0000000d}
+button.active{background:#111827;color:#fff}.heading{font-size:18px;font-weight:800;margin:14px 0 10px}
+.day{margin-bottom:20px}.dayhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.dayname{font-size:17px;font-weight:800}.date{font-size:13px;color:#6b7280}
+.lesson{background:#fff;border:1px solid #e5e7eb;border-radius:15px;padding:12px;margin:8px 0;display:grid;grid-template-columns:86px 1fr;gap:12px}
+.lesson.today{background:#dbeafe;border-color:#93c5fd}.time{font-size:12px;font-weight:800;color:#6b7280;line-height:1.5}
+.subject{font-weight:800;font-size:15px;line-height:1.3}.meta{color:#6b7280;font-size:12px;margin-top:6px;line-height:1.5}
+.empty{background:#fff;border:1px dashed #d1d5db;border-radius:15px;padding:18px;text-align:center;color:#6b7280}
+footer{color:#6b7280;font-size:11px;text-align:center;margin-top:24px;line-height:1.5}
+@media(max-width:360px){.lesson{grid-template-columns:1fr;gap:5px}}
+</style>
+</head>
+<body>
+<main>
+<header><div><h1>IBM-24 Timetable</h1><div class="sub">September 21–25, 2026</div></div><div class="badge">IBM-24</div></header>
+<div class="tabs"><button id="todayBtn" class="active">Today</button><button id="weekBtn">Week</button></div>
+<section id="content" aria-live="polite"></section>
+<footer>Based on the university timetable for September 21–25, 2026.<br>Only the IBM-24 group is included.</footer>
+</main>
+<script>
+const schedule=[
+{date:"2026-09-21",day:"Monday",lessons:[
+["08:00–09:30","Supply Chain Management and Simulation","Sardorkhon Buzrukkhonov","1/115"],
+["09:40–11:10","Entrepreneurship and Starting a Company","Bahromjon Urmanov","1/115"],
+["11:20–12:50","Budgeting and Financial Management","Mokhinur Toshpulatova","1/115"]]},
+{date:"2026-09-22",day:"Tuesday",lessons:[
+["08:00–09:30","Supply Chain Management and Simulation","Sardorkhon Buzrukkhonov","1/115"],
+["09:40–11:10","Supply Chain Management and Simulation","Sardorkhon Buzrukkhonov","1/115"],
+["11:20–12:50","Foreign Trade Techniques: Export Risk Management","Asror Komilov","1/115"]]},
+{date:"2026-09-23",day:"Wednesday",lessons:[
+["08:00–09:30","Budgeting and Financial Management","Mokhinur Toshpulatova","1/115"],
+["09:40–11:10","Entrepreneurship and Starting a Company","Bahromjon Urmanov","1/115"],
+["11:20–12:50","German IV (Level A2/B1)","Saida Khabibullaeva","1/119"]]},
+{date:"2026-09-24",day:"Thursday",lessons:[
+["08:00–09:30","Tender and Contracting","Mokhinur Toshpulatova","1/115"],
+["09:40–11:10","International Business Law","Dildora Khodjaeva","1/115"],
+["11:20–12:50","Digitalisation of Business","Bahromjon Urmanov","1/115"]]},
+{date:"2026-09-25",day:"Friday",lessons:[
+["08:00–09:30","Digitalisation of Business","Bahromjon Urmanov","1/115"],
+["09:40–11:10","Foreign Trade Techniques: Export Risk Management","Asror Komilov","1/115"],
+["11:20–12:50","International Business Law","Dildora Khodjaeva","1/115"]]}
+];
+
+const content=document.getElementById("content");
+function fmt(s){return new Date(s+"T12:00:00").toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"});}
+function lesson(l,highlight){return `<article class="lesson${highlight?" today":""}"><div class="time">${l[0]}</div><div><div class="subject">${l[1]}</div><div class="meta">${l[2]}<br>Room ${l[3]}</div></div></article>`}
+function day(d,highlight=false){return `<div class="day"><div class="dayhead"><div class="dayname">${d.day}</div><div class="date">${fmt(d.date)}</div></div>${d.lessons.map(l=>lesson(l,highlight)).join("")}</div>`}
+function renderToday(){
+ const n=new Date(),key=`${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,"0")}-${String(n.getDate()).padStart(2,"0")}`;
+ const d=schedule.find(x=>x.date===key);
+ content.innerHTML='<div class="heading">Today’s classes</div>'+
+ (d?day(d,true):'<div class="empty">No IBM-24 classes found for today in this timetable.<br><br>Open <b>Week</b> to see September 21–25.</div>');
+}
+function renderWeek(){content.innerHTML='<div class="heading">This week’s classes</div>'+schedule.map(d=>day(d)).join("");}
+function view(today){
+ document.getElementById("todayBtn").classList.toggle("active",today);
+ document.getElementById("weekBtn").classList.toggle("active",!today);
+ today?renderToday():renderWeek();
+}
+document.getElementById("todayBtn").onclick=()=>view(true);
+document.getElementById("weekBtn").onclick=()=>view(false);
+renderToday();
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+</body>
+</html>
